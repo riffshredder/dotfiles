@@ -13,10 +13,10 @@ then
 	test "${disk_encrypt_response}" = "yes" && sudo fdesetup enable -verbose
 fi
 
-_login_items="Firefox,Terminal"
+_login_items="Terminal"
 if test "${ME_CONTEXT}" = "work"
 then
-	_login_items="Keeper Password Manager,Mail,Google Drive,Slack,${_login_items}"
+	_login_items="Keeper Password Manager,Mail,Google Drive,Slack,Firefox,${_login_items}"
 	test "${_homebrew_tailscale}" = "false" && _login_items="Tailscale,${_login_items}"
 fi
 readonly _login_items
@@ -94,6 +94,14 @@ brew_formulae="bash dash oksh tcsh zsh
 	xclip
 	yq"
 
+# Current thinking about "reversing" specific use-case configurations (e.g., DNS server):
+#  1. Check for an aspect that gets installed/configured
+#  2. If detected, prompt user if the entire specific use-case should now be removed
+#  3. Proceed accordingly
+if test "${ME_CONTEXT}" = "personal" -a "${_is_dns_server}" = "true"
+then
+	brew_formulae="${brew_formulae}
+		unbound"
 if test "${ME_CONTEXT}" = "work"
 then
 	brew tap hashicorp/tap
@@ -125,10 +133,13 @@ readonly _shell="${HOMEBREW_PREFIX}/bin/oksh"
 # Install GUI packages.
 brew_casks="firefox
 	font-spleen
-	powershell
 	utm"
 
-if test "${ME_CONTEXT}" = "work"
+if test "${ME_CONTEXT}" = "personal"
+then
+	brew_casks="${brew_casks}
+		proton-pass"
+elif test "${ME_CONTEXT}" = "work"
 then
 	brew_casks="${brew_casks}
 		docker
@@ -137,6 +148,7 @@ then
 		google-cloud-sdk
 		google-drive
 		keeper-password-manager
+		powershell
 		puppetlabs/puppet/puppet-agent
 		slack
 		windows-app"
